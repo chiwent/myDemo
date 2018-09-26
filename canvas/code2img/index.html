@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Code to img</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.40.2/codemirror.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.40.2/theme/seti.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.40.2/theme/neo.css">
+    <style>
+        textarea {
+            border: 1px solid black;
+            padding: 10px;
+            height: auto;
+            overflow: visible;
+        }
+        
+        .select-options {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        
+        .description {
+            text-align: center;
+        }
+        
+        ul.choose {
+            display: flex;
+            justify-content: center;
+            border: 1px solid transparent;
+            font: 100 16px/30px 'microsoft yahei';
+            border-right: 0;
+            border-bottom: 0;
+            font-size: 16px;
+            list-style: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            margin: 45px auto;
+        }
+        
+        ul.choose:after {
+            content: "";
+            display: table;
+            clear: both
+        }
+        
+        ul.choose>li {
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            float: left;
+            height: 34px;
+            line-height: 32px;
+            margin: -1px 0 0 -1px;
+            padding: 0 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            min-width: 20px;
+            text-align: center
+        }
+        
+        ul.choose>li.selected {
+            z-index: 3;
+            border-color: #0080ff;
+            background-color: #0080ff;
+            color: #fff
+        }
+        
+        .create {
+            width: auto;
+            height: 30px;
+            line-height: 30px;
+            border: 1px #D9D9D9 solid;
+            cursor: pointer;
+            border-radius: 2px;
+            outline: none;
+            background-color: bisque !important;
+            display: block;
+            margin: 10px auto;
+        }
+        
+        .create:active {
+            background-color: #dd4b4b !important;
+        }
+        
+        .CodeMirror {
+            margin: 0 auto;
+        }
+        
+        #output {
+            display: block;
+            margin: 10px auto;
+        }
+        
+        #output>img {
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .font-option {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px auto;
+            list-style: none;
+        }
+        
+        .font-option li input[type="button"] {
+            margin-left: 20px;
+            width: auto;
+            border: 1px #D9D9D9 solid;
+            cursor: pointer;
+            border-radius: 2px;
+            outline: none;
+            background-color: bisque !important;
+        }
+        
+        .font-option li input[type="button"]:active {
+            background-color: #dd4b4b !important;
+        }
+    </style>
+</head>
+
+<body>
+    <p class="description">默认支持JavaScript，如果需要其他语言的高亮，请在下面选择</p>
+    <p class="description">下面的扩展选项中，部分内容适用于多种语言，详情请看 https://codemirror.net/mode/index.html</p>
+    <ul class="font-option">
+        <li><input type="text" class="font-weight" placeholder="粗细"><input type="button" value="确认" class="sub-weight"></li>
+        <li><input type="text" class="font-size" placeholder="大小"><input type="button" value="确认" class="sub-size"></li>
+    </ul>
+    <ul class="choose">
+        <li class="selected" onclick="getCDN(this)" data-src="text/javascript" data-type="javascript">JavaScript</li>
+        <li onclick="getCDN(this)" data-src="text/html" data-type="xml">HTML</li>
+        <li onclick="getCDN(this)" data-src="text/x-csrc" data-type="clike">C</li>
+        <li onclick="getCDN(this)" data-src="text/x-c++src" data-type="clike">C++</li>
+        <li onclick="getCDN(this)" data-src="text/x-csharp" data-type="clike">C#</li>
+        <li onclick="getCDN(this)" data-src="text/x-java" data-type="clike">Java</li>
+        <li onclick="getCDN(this)" data-src="text/x-objectivec" data-type="clike">Objective-C</li>
+        <li onclick="getCDN(this)" data-src="text/css" data-type="css">CSS</li>
+        <li onclick="getCDN(this)" data-src="text/x-scss" data-type="css">SCSS</li>
+        <li onclick="getCDN(this)" data-src="text/x-less" data-type="css">LESS</li>
+        <li onclick="getCDN(this)" data-src="text/x-vue" data-type="vue">Vue</li>
+        <li onclick="getCDN(this)" data-src="text/x-python" data-type="python">Python</li>
+        <li onclick="getCDN(this)" data-src="text/x-php" data-type="php">PHP</li>
+        <li onclick="getCDN(this)" data-src="text/x-go" data-type="go">Go</li>
+        <li onclick="getCDN(this)" data-src="text/x-ruby" data-type="ruby">ruby</li>
+        <li onclick="getCDN(this)" data-src="text/x-shell" data-type="shell">Shell</li>
+    </ul>
+
+    <button class="create" onclick="create()">一键生成图片</button>
+
+    <div class="container">
+        <code>
+                    <textarea name="code" id="code-area"> 克己
+                    </textarea>
+                    </code>
+    </div>
+    <p style="text-align: center; color:#dd4b4b; margin:20px auto;">生成的图片：</p>
+    <div id="output">
+        <img alt="">
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.40.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.40.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdn.bootcss.com/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script type="text/javascript">
+        var mode;
+        var option = {
+            value: '克己',
+            mode: mode,
+            indentUnit: 2,
+            tabSize: 4,
+            autofocus: true,
+            lineWrapping: true,
+            lineNumbers: true, //显示行号
+            theme: "seti", //设置主题
+            lineWrapping: true, //代码折叠
+            foldGutter: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+            matchBrackets: true, //括号匹配
+        }
+
+        var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+        var clientHeight = document.documentElement.clientHeight || document.body.clientHeight;
+        var codeWidth = clientWidth;
+        var codeHeight = clientHeight * 0.6;
+        var codeArea = document.getElementById("code-area");
+        var url = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.40.2/mode/';
+        var codeMirror;
+        var code = document.getElementsByTagName('code')[0];
+        var editor;
+        var choose = document.getElementsByClassName('choose')[0];
+        var chooseOpts = choose.getElementsByTagName('li');
+        var container = document.getElementsByClassName('container')[0];
+
+        function getCDN(element) {
+            code.removeChild(codeMirror);
+            clearSelected();
+            addClass(element, 'selected');
+            var lang = element.getAttribute('data-type');
+            var status = isLoadScript(lang);
+            // if (!status) {
+            //     var script = document.createElement('script');
+            //     script.src = url + lang + '/' + lang + '.min.js';
+            //     document.getElementsByTagName('head')[0].appendChild(script);
+            // }
+            // var isLoaded = isLoadScript(lang);
+            // if (isLoaded) {
+            //     setTimeout(function() { // 如果不加延时的话，mode无法生效
+            //         option.mode = element.getAttribute('data-src');
+            //         editor = CodeMirror.fromTextArea(codeArea, option);
+            //         editor.setSize(codeWidth * 0.6, 'auto');
+            //         editor.setCursor(0);
+            //         codeMirror = document.getElementsByClassName('CodeMirror')[0];
+            //     }, 50)
+            // }
+            // var status = isLoadScript(lang);
+            //if (!status)
+            jsonp(lang, url, setTimeout(function() { // 如果不加延时的话，mode无法生效。延时时间可以自定义，时间越长，输入框等待刷新的时间越长
+                option.mode = element.getAttribute('data-src');
+                editor = CodeMirror.fromTextArea(codeArea, option);
+                editor.setSize(codeWidth * 0.6, 'auto');
+                editor.setCursor(0);
+                codeMirror = document.getElementsByClassName('CodeMirror')[0];
+            }, 200))
+        }
+
+        function testTime() {
+            var d = new Date();
+            return Date.parse(d) + d.getMilliseconds();
+        }
+        var t1, t2;
+
+        function jsonp(lang, url, callback) {
+            var status = isLoadScript(lang);
+            var src = url + lang + '/' + lang + '.min.js';
+            try {
+                if (!status) {
+                    // console.log('preload')
+                    var script = document.createElement('script');
+                    script.setAttribute('type', 'text/javascript')
+                    t1 = testTime();
+                    script.onload = function() {
+                        t2 = testTime();
+                        console.log('use time(ms):', t2 - t1) // 测试加载时间，尽管加载完毕，但是还是不能马上执行回调
+                    }
+                    script.setAttribute('src', src)
+                    document.getElementsByTagName('head')[0].appendChild(script);
+                }
+            } catch (err) {
+
+            } finally {
+                callback;
+            }
+        }
+
+        function init() {
+
+            if (!option.mode) {
+                option.mode = 'text/javascript';
+                editor = CodeMirror.fromTextArea(codeArea, option);
+                editor.setSize(codeWidth * 0.6, 'auto');
+                editor.setCursor(0);
+                codeMirror = document.getElementsByClassName('CodeMirror')[0];
+            }
+
+            document.getElementsByClassName('sub-weight')[0].onclick = function() {
+                var fontWeight = document.getElementsByClassName('font-weight')[0].value;
+                codeMirror.style.fontWeight = fontWeight;
+                // console.log(getComputedStyle(codeMirror, null).fontWeight)
+            }
+            document.getElementsByClassName('sub-size')[0].onclick = function() {
+                var fontSize = document.getElementsByClassName('font-size')[0].value;
+                codeMirror.style.fontSize = fontSize + 'px';
+                // console.log(getComputedStyle(codeMirror, null).fontSize)
+            }
+
+
+        }
+
+        function isLoadScript(lang) {
+            var src = url + lang + '/' + lang + '.min.js';
+            var script = document.getElementsByTagName('script');
+            for (var i = 0; i < script.length; i++) {
+                if (script[i].src === src) return true;
+            }
+            return false;
+        }
+
+        function create() {
+            var canvas = document.createElement('canvas');
+            var output = document.getElementById('output');
+            var img = output.getElementsByTagName('img')[0];
+            var ctx = canvas.getContext('2d');
+            if (!ctx) {
+                alert('你的浏览器不支持canvas');
+            }
+
+
+            html2canvas(codeMirror, {
+                onrendered: function(canvas) {
+                    var screenshot = canvas.toDataURL("image/png");
+                    img.setAttribute('src', screenshot);
+                }
+            });
+
+            /*
+             domtoimage.toPng(codeMirror)
+                 .then(function(dataUrl) {
+                     //var img = new Image();
+                     img.src = dataUrl;
+                     //  output.appendChild(img);
+                 })
+                 .catch(function(err) {
+                     alert('出错了:', err)
+                 })
+             */
+            /*
+            canvas.height = codeArea.clientHeight;
+            canvas.width = codeArea.clientWidth;
+            ctx.fillText(codeMirror.innerHTML, 0, 14)
+            var dataUrl = canvas.toDataURL('image/png');
+            img.src = dataUrl;
+            */
+        }
+
+        function addClass(ele, name) {
+            if (ele && name) {
+                var cn = ele.className;
+                if (!cn) {
+                    ele.className = name;
+                } else if (cn.indexOf(name) === -1) {
+                    ele.className = cn.replace(/\s*$/, ' ' + name);
+                }
+            }
+        }
+
+        function removeClass(ele, name) {
+            var reg1 = new RegExp('^\\s*\\b' + name + '\\b\\s*$');
+            var reg2 = new RegExp('^\\s*' + name + '\\b');
+            var reg3 = new RegExp('\\b' + name + '\\s*$');
+            var reg4 = new RegExp('\\s*\\b' + name + '\\b\\s*');
+            if (ele && name) {
+                var cn = ele.className;
+                if (cn && cn.indexOf(name) > -1) {
+                    if (reg1.test(cn)) {
+                        ele.className = '';
+                    } else if (reg2.test(cn)) {
+                        ele.className = cn.replace(reg2, '');
+                    } else if (reg3.test(cn)) {
+                        ele.className = cn.replace(reg3, '');
+                    } else {
+                        ele.className = cn.replace(reg4, ' ');
+                    }
+                }
+            }
+        };
+
+
+        function clearSelected() {
+            Array.prototype.forEach.call(chooseOpts, function(item) {
+                removeClass(item, 'selected');
+            })
+        }
+        window.onload = function() {
+            init();
+        }
+    </script>
+</body>
+
+</html>
