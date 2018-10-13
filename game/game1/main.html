@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="./main.css">
+    <title>Get 10</title>
+</head>
+
+<body>
+    <div class="brief">合并方块</div>
+	<!--<div class="brief">可以选择下面的选项来定义棋盘的大小</div>
+	<ul>
+		<li><button class="btn">小</button>
+		<li><button class="btn">中</button>
+		<li><button class="btn">大</button>
+	</ul>-->
+    <div class="stage"></div>
+    <div class="mask">
+        <div class="txt"></div>
+        <a href="javascript:start()">再来一次</a>
+    </div>
+	
+<script>
+'use strict';
+
+
+
+
+
+function popup() {
+	document.querySelector('.mask').style.display = 'block';
+	document.querySelecrot('.mask .txt').innerHTML = "最高分<br>" + "<p>" + maxView + "</p>";
+}
+
+
+function randomNum() {
+	let n = 1;
+	if (Math.random() < 0.05) {
+		n = 5;
+	} else if (Math.random() < 0.2) {
+		n = 4;
+	} else if (Math.random() < 0.3) {
+		n = 3;
+	} else if (Math.random() < 0.5) {
+		n = 2;
+	}
+	return n;
+}
+
+function getLen(obj) {
+	let n = 0;
+	for (let k in obj) {
+		n++;
+	}
+	return n;
+}
+
+var box = '',
+	boxData = [ [], [], [], [], [], [] ],
+	boxDataList = [ [], [], [], [], [], [] ],
+	set = 0,
+	setNum = {},
+	maxNum = 5,
+	stage = document.querySelector('.stage');
+
+// data-set: 方块的编号
+// data-v: 方块的值
+// data-r: 方块所在行数
+// data-c: 方块所在列数
+
+function initBox(arr) {
+	set = 0;
+	setNum = {};
+	box = "";
+	for (let i = 0; i < arr.length; i++) {
+		for (let j = 0; j < arr[i].length; j++) {
+			set++;
+			checkData(i, j, arr[i][j].v);
+			box += '<div data-set="' + arr[i][j].set + '" data-v="' + arr[i][j].v + '" data-r="' + arr[i][j].r + '" data-c="' + arr[i][j].c + '" data-on="' + arr[i][j].on + '" class="box r' + arr[i][j].r + ' c' + arr[i][j].c + '" onclick="setBox(this)">' + arr[i][j].v + '</div>';
+		}
+	}
+	if (getLen(setNum) >= 36) {
+		popup();
+	}
+	stage.innerHTML = box;
+	//console.log(box)
+	setTimeout(moveBox, 10);
+}
+
+function moveBox() {
+	/*let on3 = document.querySelectorAll('.box[data-on="3"]');
+	for (var i = 0, len = on3.length; i < len; i++) {
+        on3[i].dataset.on = 0;
+     }*/
+	let on = document.querySelectorAll('.box[data-on="4"]');
+	for (var i = 0, len = on.length; i < len; i++) {
+        on[i].dataset.on = 0;
+     }
+}
+
+function moveBox2(r, c) {
+	let on2 = document.querySelectorAll('.box[data-on="2"]');
+	for (let i = 0, len = on2.length; i < on2.length; i++) {
+		on2[i].className = 'box r' + r + ' c' + c;
+	}
+}
+
+function checkData(r, c, v) {
+	if (boxData[r][c].set)
+		return;
+	setNum[set] = set;
+	// 选择周围相同值
+	boxData[r][c].set = set;
+	//console.log('r:' + r + ',' + 'c:' + c + ',' + 'v:' + v);
+	// 左侧
+	if (c > 0) {
+		var c1 = Math.round(c) - 1;
+		if (boxData[r][c1].v === v) {
+			checkData(r, c1, v);
+		}
+	}
+
+	// 右侧
+	if (c < 5) {
+		var c2 = Math.round(c) + 1;
+		//console.log('c2:',c2);
+		//console.log(boxData[r][c2])
+		if (boxData[r][c2].v === v) {
+			checkData(r, c2, v);
+		}
+	}
+
+	// 上侧
+	if (r > 0) {
+		var r1 = Math.round(r) - 1;
+		if (boxData[r1][c].v === v) {
+			checkData(r1, c, v);
+		}
+	}
+
+	// 下侧
+	if (r < 5) {
+		var r2 = Math.round(r) + 1;
+		//console.log('r2:',r2);
+		//console.log(boxData[r2][c])
+		if (boxData[r2][c].v === v) {
+			checkData(r2, c, v);
+		}
+	}
+}
+
+function setBox(target) {
+	let r = target.dataset.r | 0,
+		c = target.dataset.c | 0,
+		v = target.dataset.v | 0,
+		s = target.dataset.set | 0;
+	if (boxData[r][c].on !== 1) {
+		// 未激活
+		let setCount = 0;
+		for (let i = 0; i < boxData.length; i++) {
+			for (let j = 0; j < boxData[i].length; j++) {
+				let on = boxData[i][j].set === s ? 1 : 0;
+				// 当格子被选中
+				if (on === 1) {
+					setCount++;
+				}
+				boxData[i][j].on = on;
+				document.querySelector('.r' + i + '.c' + j).dataset.on = on;
+			}
+		}
+		if (setCount < 2) {
+			// 激活的格子数小于2
+			for (let i = 0; i < boxData.length; i++) {
+				for (let j = 0; j < boxData[i].length; j++) {
+					boxData[i][j].on = 0;
+					document.querySelector('.r' + i + '.c' + j).dataset.on = 0;
+				}
+			}
+		}
+		} else {
+			// 已激活
+			for (let i = 0; i < boxData.length; i++) {
+				for (let j = 0; j < boxData[i].length; j++) {
+					let on = boxData[i][j].set === s ? 2 : 0;
+					if (i === r && j === c) {
+						on = 0;
+						boxData[i][j].v += 1;
+						maxNum = Math.max(boxData[i][j].v, maxNum);
+						// 更新数据
+						document.querySelector('.r' + i + '.c' + j).dataset.v = boxData[i][j].v;
+						document.querySelector('.r' + i + '.c' + j).innerHTML = boxData[i][j].v;
+					}
+					boxData[i][j].on = on;
+					document.querySelector('.r' + i + '.c' + j).dataset.on = on;
+				}
+			}
+			moveBox2(r, c);
+			setTimeout(sortBox, 200);
+			setTimeout(() => {
+				initBox(boxData)
+			}, 300)
+		}
+	}
+	function sortBox() {
+		// 消除合并的格子
+		for (let i = 0; i < boxData.length; i++) {
+			let j = 0;
+			while (boxData[i][j]) {
+				// 移动位置
+				let rc = document.querySelector('.r' + boxData[i][j].r + '.c' + boxData[i][j].c + '.box[data-on="0"]');
+				if (rc && rc.dataset.on === 0) {
+					rc.className = 'box r' + i + ' c' + j;
+				}
+				if (boxData[i][j].on === 2) {
+					boxData[i].splice(j, 1);
+				} else {
+					j++;
+				}
+			}
+			for (let k = 0; k < 6; k++) {
+				if (!boxData[i][k]) {
+					// 补充新格子
+					let v = randomNum();
+					//console.log('randomV:',v)
+					boxData[i][k] = {
+						on: 4,
+						v: v,
+						r: i,
+						c: k,
+						set: 0
+					}
+				} else {
+					boxData[i][k] = {
+						on: 0,
+						v: boxData[i][k].v,
+						r: i,
+						c: k,
+						set: 0
+					}
+				}
+			}
+		}
+	}
+	function start() {
+		document.querySelector('.mask').style.display = 'none'
+		// 初始化
+		for (let r = 0 ; r < 6; r++) {
+			for (let c = 0; c < 6; c++) {
+				let i = r * 6 + c;
+				let v = randomNum();
+				boxData[r][c] = {
+					on: 0,
+					v: v,
+					r: r,
+					c: c,
+					set: 0
+				}
+			}
+		}
+		//console.log(boxData);
+	
+		initBox(boxData);
+	}
+	start()
+    </script>
+</body>
+
+</html>
